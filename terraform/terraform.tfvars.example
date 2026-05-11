@@ -1,0 +1,29 @@
+subscription_id     = "00000000-AAAA-1111-BBBB-222222222222"
+location            = "westus3"
+resource_group_name = "rg-resource-group"
+tags = {
+    "Key" = "Value"
+}
+
+# Naming
+logic_app_base_name        = "la-my-logic-app"
+app_service_plan_base_name = "asp-logic-app-private"
+storage_account_base_name  = "mylogicappstorage"
+plan_sku                   = "WS1"
+
+# Optional: pin the 4-char suffix instead of generating one.
+# name_suffix = "ab12"
+
+# Existing VNet + subnets
+vnet_resource_group          = "rg-existing-vnet"
+vnet_name                    = "vnet-existing"
+private_endpoint_subnet_name = "snet-pes"
+integration_subnet_name      = "snet-logic-app"
+
+# Resource group for existing privatelink.* DNS zones (already linked to the VNet)
+private_dns_zone_subscription_id = "00000000-AAAA-1111-BBBB-222222222222"
+private_dns_zone_resource_group = "rg-dns-zones"
+
+# User Assigned Managed Identity (can be same resource group as logic app)
+uami_name           = "htp-logic-app-uami"
+

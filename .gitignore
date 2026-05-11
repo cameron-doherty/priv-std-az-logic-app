@@ -1,0 +1,58 @@
+
+# ------------------------------
+# OS / Editor
+# ------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.azcli
+
+# ------------------------------
+# Terraform
+# ------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform variable files (often contain secrets)
+*.tfvars
+*.tfvars.json
+
+# Local CLI configuration files
+terraform.rc
+.terraformrc
+
+# ------------------------------
+# Azure Bicep
+# ------------------------------
+# Local Bicep build output
+*.bicepbuild.json
+
+# Bicep parameters can include sensitive values
+*.bicepparam
+
+# ------------------------------
+# Azure ARM Templates
+# ------------------------------
+# Parameter files often contain secrets
+*.parameters.json
+
+# Generated / deployment artifacts
+*.deployment.json
+
+# ------------------------------
+# Logs and temp files
+# ------------------------------
+*.log
+*.tmp
+*.temp
