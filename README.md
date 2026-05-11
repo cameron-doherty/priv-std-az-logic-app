@@ -102,7 +102,6 @@ filled-in template. Key inputs:
 | `private_endpoint_subnet_name` / `integration_subnet_name` | yes | Existing subnets. |
 | `private_dns_zone_resource_group` | yes | RG holding the four `privatelink.*` zones. |
 | `uami_resource_group` / `uami_name` | yes | Existing UAMI. |
-| `log_analytics_workspace_id` | yes | Diagnostics destination. |
 | `plan_sku` | no (`WS1`) | Logic App Standard plan SKU (`WS1`/`WS2`/`WS3`). |
 | `storage_account_replication_type` | no (`LRS`) | Storage replication. |
 | `name_suffix` | no | Pin the 4-char suffix instead of randomizing. |
