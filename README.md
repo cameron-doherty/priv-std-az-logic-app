@@ -31,22 +31,10 @@ All resources are created in the resource group provided via
 - Storage Table Data Contributor
 
 ### Networking model
-```
-                ┌────────────────────────┐
-                │  Existing VNet         │
-                │                        │
-   Logic App ──►│  integration subnet    │──► Internet / Azure (egress)
-  (outbound)    │  (delegated to         │
-                │   Microsoft.Web/...    │
-                │   serverFarms)         │
-                │                        │
-                │  PE subnet  ◄──────────┼── Private Endpoints (blob/file/queue/table)
-                └────────────────────────┘
-                            │
-                            ▼
-                Existing privatelink.* DNS zones
-                (already linked to the VNet)
-```
+- Logic App is deployed with a Private Endpoint (inbound) and has Public Access = Disabled
+- Logic App is delegated to a designated subnet for outbound communications through a private virtual network. Inherits routing rules, NSGs, and DNS settings enforced on the vnet/subnet
+- Storage Account backing the Logic App is similarly configured with Private Endpoint for inbound access and Public Access disabled
+- Private Link DNS Zones are assumed to be centrally managed and not created as part of this template but private endpoint configuration is aligned to those centralized zones to ensure seemless DNS resolution.
 
 ---
 
