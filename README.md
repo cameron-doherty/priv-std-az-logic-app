@@ -56,10 +56,7 @@ resources. The following must exist before `terraform apply`:
    - `privatelink.file.core.windows.net`
    - `privatelink.queue.core.windows.net`
    - `privatelink.table.core.windows.net`
-5. **User-Assigned Managed Identity** — `uami_name` in `uami_resource_group`.
-6. **Log Analytics workspace** ID (used for diagnostic settings; can live in
-   another subscription).
-7. **Tooling**:
+5. **Tooling**:
    - Terraform `>= 1.5.0`
    - Providers: `azurerm ~> 4.0`, `random ~> 3.6`, `azapi ~> 2.0`
    - Azure CLI (`az login`) for authentication, or any other mechanism the
@@ -122,9 +119,9 @@ terraform destroy
 ```
 .
 ├── README.md                  # This file
-├── private_logic_app.azcli    # Equivalent shell-script deployment (az CLI)
-├── ARM/                       # ARM-template equivalent
-├── bicep/                     # Bicep equivalent
+├── LICENSE                    # License file
+├── ARM/                       # ARM-template equivalent (to do)
+├── bicep/                     # Bicep equivalent (to do)
 └── terraform/                 # ◄── primary deployment
     ├── providers.tf           # Provider + required_version pins
     ├── variables.tf           # Input variables
