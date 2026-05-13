@@ -1,5 +1,7 @@
 # Secured Logic App Deployment
-Many environments have strict requirements around Azure PaaS services and how they must be configured from a network availability perspective. Specifically, many environments enforce any PaaS resource, whether it be Storage or Key Vault or App Services, to have `Public Access` = `Disabled`.  While this provides an excellent security posture by limiting public exposure, it does cause some friction in environments where users may be deploying resources in various manners (e.g. as code or via portal).
+Many environments have strict requirements around Azure PaaS services and how they must be configured from a network availability perspective. Specifically, they enforce that any PaaS resource, whether it be Storage or Key Vault or App Services, to have `Public Access` = `Disabled`.  
+
+While this provides an excellent security posture by limiting public exposure, it does cause some friction in environments where users may be deploying resources in various manners (e.g. as code or via portal).
 
 The purpose of this repository is to provide IaC templates that allow customers to deploy the following:
 
