@@ -35,11 +35,30 @@ terraform.rc
 # ------------------------------
 # Azure Bicep
 # ------------------------------
-# Local Bicep build output
-*.bicepbuild.json
+# Bicep build artifacts
+*.json.template
 
-# Bicep parameters can include sensitive values
-*.bicepparam
+# ARM template outputs
+*.compiled.json
+
+# Deployment artifacts
+deployment_output.json
+*.log
+
+# Local parameter overrides (keep .example files and main.parameters.json)
+*.parameters.local.json
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
 
 # ------------------------------
 # Azure ARM Templates

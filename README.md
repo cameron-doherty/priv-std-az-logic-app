@@ -1,138 +1,40 @@
-# Private Logic App Standard (Terraform)
+# Secured Logic App Deployment
+Many environments have strict requirements around Azure PaaS services and how they must be configured from a network availability perspective. Specifically, many environments enforce any PaaS resource, whether it be Storage or Key Vault or App Services, to have `Public Access` = `Disabled`.  While this provides an excellent security posture by limiting public exposure, it does cause some friction in environments where users may be deploying resources in various manners (e.g. as code or via portal).
 
-Terraform configuration that deploys an **Azure Logic App Standard** wired up for
-private networking: storage access over Private Endpoints, outbound traffic via
-VNet integration, and a User-Assigned Managed Identity (UAMI) used for storage
-RBAC.
+The purpose of this repository is to provide IaC templates that allow customers to deploy the following:
 
-The project is intentionally small and opinionated — it targets a single
-environment and assumes the surrounding network and identity primitives already
-exist (VNet, subnets, Private DNS zones, UAMI).
+- A fully private Logic App
+    - Public access disabled
+    - Private Endpoint enabled on selected vnet/subnet
+    - vNet injection for outbound communications (all outbound)
+- User Assigned Managed Identity
+    - Associated to Logic App for accessing dependent resource (storage) 
+    - Granted specific RBAC roles on storage (blob, queue, table, file)
+- A fully private Storage Account (dependent resource for standard Logic App)
+    - Public access disabled
+    - Private Endpoint enabled on selected vnet/subnet
+- Integrates with existing resources
 
----
-## What gets deployed
+> [!WARNING]
+> Due to current limitations with the Files service, which Logic App uses, the storage account must still have Access Keys enabled. Improvements are being made to allow for the use of Managed Identity with the Files service and once that is a supported pattern, Access Keys can be fully disabled.
 
-All resources are created in the resource group provided via
-`resource_group_name`.
+# Prerequisites
+Below are the prereqs for the templates:
+- A virtual network with 2 subnets for the following:
+    - Private Endpoints
+    - Logic App vNet injection (**ensure appropriate sizing!**)
+- Private Link DNS Zones for the following:
+    - `privatelink.azurewebsites.net`
+    - `privatelink.blob.core.windows.net`
+    - `privatelink.file.core.windows.net`
+    - `privatelink.queue.core.windows.net`
+    - `privatelink.table.core.windows.net`
+- Ensure vNet DNS configuration is configured to point to appropriate resolver service so that the aforementioned zones can successfully be resolved
 
-| Resource | Terraform | Notes |
-|---|---|---|
-| App Service Plan (Windows, `WS1` by default) | `azurerm_service_plan.asp` | Hosts the Logic App Standard runtime. |
-| Storage account (StorageV2, public access disabled) | `azurerm_storage_account.this` | Backing storage for the Logic App. `Deny` default network rule with `AzureServices` bypass. |
-| Default file share (`<logic-app-name>-content`) | `azapi_resource.default_share` | Created via the management plane (AzAPI) because the data plane is private. Required by Terraform which otherwise would utilize direct calls to storage service. |
-| Private Endpoints (blob / file / queue / table) | `azurerm_private_endpoint.this` (`for_each`) | Each PE is registered into the matching pre-existing `privatelink.*` DNS zone (can be in a different subscription/resource group). |
-| Role assignments on the storage account | `azurerm_role_assignment.uami_storage` (`for_each`) | Grants the UAMI the roles needed by the Logic App runtime (see below). |
-| Logic App Standard | `azurerm_logic_app_standard.logicapp` | VNet-integrated, `https_only`, identity-based storage wiring via `AzureWebJobsStorage__credential = ManagedIdentity`. |
+# Current IaC Templates Available
+Here is the list of available/planned IaC templates. Note that these are opinionated approaches to deploying the resources so please use these as a base and customize or integrate them into existing templates as needed.
 
-### Storage RBAC granted to the UAMI
-- Storage Account Contributor
-- Storage Blob Data Owner
-- Storage Queue Data Contributor
-- Storage Table Data Contributor
+- [Terraform](terraform/README.md)
+- [Bicep](bicep/README.md)
+- [ARM](arm/README.md)
 
-### Networking model
-- Logic App is deployed with a Private Endpoint (inbound) and has Public Access = Disabled
-- Logic App is delegated to a designated subnet for outbound communications through a private virtual network. Inherits routing rules, NSGs, and DNS settings enforced on the vnet/subnet
-- Storage Account backing the Logic App is similarly configured with Private Endpoint for inbound access and Public Access disabled
-- Private Link DNS Zones are assumed to be centrally managed and not created as part of this template but private endpoint configuration is aligned to those centralized zones to ensure seemless DNS resolution.
-
----
-
-## Prerequisites
-
-The configuration **does not** create networking, DNS, identity, or observability
-resources. The following must exist before `terraform apply`:
-
-1. **Azure subscription** with Owner/Contributor + User Access Administrator on
-   the target resource group (role assignments are created here).
-2. **Resource group** — `resource_group_name`.
-3. **Virtual Network** — `vnet_name` in `vnet_resource_group`, containing:
-   - A **Private Endpoint subnet** (`private_endpoint_subnet_name`).
-   - An **integration subnet** (`integration_subnet_name`) delegated to
-     `Microsoft.Web/serverFarms`.
-4. **Private DNS zones** in `private_dns_zone_resource_group`, **already linked
-   to the VNet**:
-   - `privatelink.blob.core.windows.net`
-   - `privatelink.file.core.windows.net`
-   - `privatelink.queue.core.windows.net`
-   - `privatelink.table.core.windows.net`
-5. **Tooling**:
-   - Terraform `>= 1.5.0`
-   - Providers: `azurerm ~> 4.0`, `random ~> 3.6`, `azapi ~> 2.0`
-   - Azure CLI (`az login`) for authentication, or any other mechanism the
-     `azurerm` provider supports (env vars, OIDC, MSI, etc.).
-
----
-
-## Usage
-
-```powershell
-cd terraform
-
-# 1. Create your tfvars from the template
-Copy-Item terraform.tfvars.example terraform.tfvars
-# ...edit terraform.tfvars to match your environment
-
-# 2. Authenticate
-az login
-$env:ARM_SUBSCRIPTION_ID = "<your-subscription-id>"
-
-# 3. Initialize and validate
-terraform init
-terraform validate
-terraform fmt
-
-# 4. Plan and apply
-terraform plan -out tfplan
-terraform apply tfplan
-```
-
-### Inputs
-See [`terraform/variables.tf`](terraform/variables.tf) for the full list and
-[`terraform/terraform.tfvars.example`](terraform/terraform.tfvars.example) for a
-filled-in template. Key inputs:
-
-| Variable | Required | Description |
-|---|---|---|
-| `subscription_id` | yes | Target subscription. |
-| `location` | yes | Azure region for created resources. |
-| `resource_group_name` | yes | RG that holds the new resources. |
-| `logic_app_base_name` / `app_service_plan_base_name` / `storage_account_base_name` | yes | Base names; a 4-char suffix is appended. |
-| `vnet_resource_group` / `vnet_name` | yes | Existing VNet. |
-| `private_endpoint_subnet_name` / `integration_subnet_name` | yes | Existing subnets. |
-| `private_dns_zone_resource_group` | yes | RG holding the four `privatelink.*` zones. |
-| `uami_resource_group` / `uami_name` | yes | Existing UAMI. |
-| `plan_sku` | no (`WS1`) | Logic App Standard plan SKU (`WS1`/`WS2`/`WS3`). |
-| `storage_account_replication_type` | no (`LRS`) | Storage replication. |
-| `name_suffix` | no | Pin the 4-char suffix instead of randomizing. |
-
-### Cleanup
-```powershell
-terraform destroy
-```
-
----
-
-## Repository layout
-
-```
-.
-├── README.md                  # This file
-├── LICENSE                    # License file
-├── ARM/                       # ARM-template equivalent (to do)
-├── bicep/                     # Bicep equivalent (to do)
-└── terraform/                 # ◄── primary deployment
-    ├── providers.tf           # Provider + required_version pins
-    ├── variables.tf           # Input variables
-    ├── locals.tf              # Naming, network IDs, RBAC map
-    ├── main.storage.tf        # Storage account, share, PEs, RBAC
-    ├── main.logic.app.tf      # App Service Plan + Logic App Standard
-    └── terraform.tfvars.example
-```
-
----
-
-## License
-
-Released under the [MIT License](LICENSE). Use it freely; please retain the
-copyright notice in derivative work.
