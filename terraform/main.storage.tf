@@ -51,7 +51,7 @@ resource "azapi_resource" "default_share" {
 ############################################
 
 resource "azurerm_private_endpoint" "this" {
-  for_each = local.private_dns_zone_ids
+  for_each = { for k, v in local.private_dns_zone_ids : k => v if k != "logicapp" }
 
   name                = "pe-${local.storage_account_name}-${each.key}"
   location            = local.storage_location

@@ -18,10 +18,11 @@ locals {
 
   # Existing Private DNS zones (already linked to the VNet).
   private_dns_zone_ids = {
-    blob  = "${local.private_dns_zone_base}/privatelink.blob.core.windows.net"
-    file  = "${local.private_dns_zone_base}/privatelink.file.core.windows.net"
-    queue = "${local.private_dns_zone_base}/privatelink.queue.core.windows.net"
-    table = "${local.private_dns_zone_base}/privatelink.table.core.windows.net"
+    blob     = "${local.private_dns_zone_base}/privatelink.blob.core.windows.net"
+    file     = "${local.private_dns_zone_base}/privatelink.file.core.windows.net"
+    queue    = "${local.private_dns_zone_base}/privatelink.queue.core.windows.net"
+    table    = "${local.private_dns_zone_base}/privatelink.table.core.windows.net"
+    logicapp = "${local.private_dns_zone_base}/privatelink.azurewebsites.net"
   }
 
   # RBAC roles to assign to the UAMI on the storage account.
@@ -30,5 +31,6 @@ locals {
     blob_data_owner     = "Storage Blob Data Owner"
     queue_data          = "Storage Queue Data Contributor"
     table_data          = "Storage Table Data Contributor"
+    file_smb_mi_admin   = "Storage File Data SMB MI Admin"
   }
 }
